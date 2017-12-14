@@ -4,7 +4,7 @@
 import codecs
 import errno
 import fcntl
-import message_pb2
+from . import message_pb2
 import os
 import platform
 import select
@@ -91,7 +91,7 @@ class EntryClient:
         termios.tcsetattr(self._utf_in, termios.TCSADRAIN, self._oldtty)
         signal.signal(signal.SIGWINCH, self._old_handler)
         self._ws.close()
-        print ''
+        print('')
 
     def _is_close_message(self, msg):
         resp_msg = self._gen_response(msg)
