@@ -20,12 +20,7 @@ import websocket
 class EntryClient:
 
     def __init__(self, endpoint, header=None):
-        UTF8Reader = codecs.getreader('utf8')
-        self._utf_in = UTF8Reader(sys.stdin)
-        UTF8Writer = codecs.getwriter('utf8')
-        self._utf_out = UTF8Writer(sys.stdout)
-        self._utf_err = UTF8Writer(sys.stderr)
-
+        self._init_writer_and_reader()
         self._oldtty = termios.tcgetattr(self._utf_in)
         self._old_handler = signal.getsignal(signal.SIGWINCH)
         try:
@@ -55,7 +50,7 @@ class EntryClient:
                         if self._is_close_message(data):
                             break
                     if self._utf_in in r:
-                        utf8char = ""
+                        utf8char = "" if sys.version_info.major == 2 else b""
                         valid_utf8 = False
                         while not valid_utf8:
                             utf8char = utf8char + os.read(
@@ -65,6 +60,8 @@ class EntryClient:
                                 valid_utf8 = True
                             except UnicodeDecodeError:
                                 pass
+                        if sys.version_info.major == 3:
+                            utf8char = utf8char.decode()
                         self._ws.send(self._gen_plain_request(utf8char))
                 except (select.error, IOError) as e:
                     if e.args and e.args[0] == errno.EINTR:
@@ -108,13 +105,13 @@ class EntryClient:
     def _gen_resize_request(self, width, height):
         req_message = message_pb2.RequestMessage()
         req_message.msgType = message_pb2.RequestMessage.WINCH
-        req_message.content = "%d %d" % (width, height)
+        req_message.content = self._message_to_bytes("%d %d" % (width, height))
         return req_message.SerializeToString()
 
     def _gen_plain_request(self, content):
         req_message = message_pb2.RequestMessage()
         req_message.msgType = message_pb2.RequestMessage.PLAIN
-        req_message.content = content
+        req_message.content = self._message_to_bytes(content)
         return req_message.SerializeToString()
 
     def _gen_response(self, payload):
@@ -135,3 +132,18 @@ class EntryClient:
     def _send_window_resize(self):
         width, height = self._get_window_size(self._utf_out)
         self._ws.send(self._gen_resize_request(width, height))
+
+    def _message_to_bytes(self, content):
+        return content if sys.version_info.major == 2 else content.encode()
+
+    def _init_writer_and_reader(self):
+        if sys.version_info.major == 2:
+            utf8_reader = codecs.getreader('utf8')
+            utf8_writer = codecs.getwriter('utf8')
+            self._utf_in = utf8_reader(sys.stdin)
+            self._utf_out = utf8_writer(sys.stdout)
+            self._utf_err = utf8_writer(sys.stderr)
+        else:
+            self._utf_in = sys.stdin
+            self._utf_out = sys.stdout
+            self._utf_err = sys.stderr
