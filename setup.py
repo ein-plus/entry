@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 requirements = [
     'websocket-client==0.32.0',
-    'protobuf==3.0.0b3',
+    'protobuf==3.5.0.post1',
     'six>=1.9.0',
 ]
 
