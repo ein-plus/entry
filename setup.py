@@ -7,7 +7,7 @@ requirements = [
 ]
 
 setup(
-    name="entryclient",
+    name="einplus_entryclient",
     author='EricPai <ericpai94@hotmail.com>',
     version='2.3.2',
     packages=find_packages(),
