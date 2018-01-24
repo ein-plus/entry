@@ -3,4 +3,5 @@ entry.iml
 *.pyc
 test.py
 test_client.py
+**/*.egg-info
 **/.ropeproject/
