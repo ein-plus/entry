@@ -5,3 +5,4 @@ test.py
 test_client.py
 **/*.egg-info
 **/.ropeproject/
+Pipfile
